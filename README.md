@@ -36,7 +36,7 @@ Une plateforme web moderne pour l'annotation collaborative de textes, développ�
   - Spring Security
   - Spring Data JPA
   - Hibernate
-  - PostgreSQL
+  - MySQL
 
 - **Frontend**
   - Thymeleaf
@@ -65,7 +65,7 @@ Une plateforme web moderne pour l'annotation collaborative de textes, développ�
 4. **Installation**
    ```bash
    # Cloner le repository
-   git clone https://github.com/votre-username/annotation-platform.git
+   git clone https://github.com/silue-gninho/annotation-platform.git
    
    # Se déplacer dans le dossier
    cd annotation-platform
@@ -80,7 +80,7 @@ Une plateforme web moderne pour l'annotation collaborative de textes, développ�
 ## 📝 Utilisation
 
 1. **Accès à l'application**
-   - URL : `http://localhost:8080`
+   - URL : `http://localhost:8081`
    - Compte admin par défaut : admin/admin123
    - Compte annotateur par défaut : annotator/annotator123
 

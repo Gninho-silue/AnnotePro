@@ -1,5 +1,6 @@
 package com.example.annotationPlatform.intData;
 
+import com.example.annotationPlatform.exception.RessourceNotFoundException;
 import com.example.annotationPlatform.model.Role;
 import com.example.annotationPlatform.model.User;
 import com.example.annotationPlatform.repository.RoleRepository;
@@ -36,6 +37,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         initRoles();
         initAdmin();
+        initAnnotator();
     }
 
     /**
@@ -64,7 +66,7 @@ public class DataInitializer implements CommandLineRunner {
     private void initAdmin() {
         if (userRepository.count() == 0) {
             Role adminRole = roleRepository.findByName(Constants.ROLE_ADMIN)
-                    .orElseThrow(() -> new RuntimeException("Admin role not found"));
+                    .orElseThrow(() -> new RessourceNotFoundException("Admin role not found"));
 
             User admin = new User();
             admin.setUsername("admin");
@@ -79,6 +81,29 @@ public class DataInitializer implements CommandLineRunner {
 
             userRepository.save(admin);
             System.out.println("Admin user created successfully");
+        }
+    }
+
+    private void initAnnotator() {
+        if (userRepository.findByRoles_Name(Constants.ROLE_ANNOTATOR).isEmpty()) {
+           Role annotatorRole = roleRepository.findByName(Constants.ROLE_ANNOTATOR)
+           .orElseThrow(() -> new RessourceNotFoundException("Annotator role not found"));
+
+           User annotator = new User();
+           annotator.setUsername("annotator");
+           annotator.setPassword(passwordEncoder.encode("annotator123"));
+           annotator.setFirstName("Annotator");
+           annotator.setLastName("User");
+           annotator.setEmail("annotator@example.com");
+           annotator.setEnable(true);
+           annotator.setAccountLocked(false);
+           annotator.setCreateDate(LocalDateTime.now());
+           annotator.setRoles(Collections.singletonList(annotatorRole));
+
+           userRepository.save(annotator);
+           System.out.println("Annotator user created successfully");
+
+
         }
     }
 }
