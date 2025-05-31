@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métriques du Dataset - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+<!-- Toggle menu button and overlay -->
+<button class="btn menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+    <i class="bi bi-list text-white"></i>
+</button>
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar(currentUri=${currentUri})}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in" style="border-radius: 10px; border-left: 4px solid #198754;" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in" style="border-radius: 10px; border-left: 4px solid #dc3545;" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in">
+            <h2 class="text-primary">Métriques du Dataset : <span th:text="${dataset != null && dataset.getName() != null ? dataset.getName() : 'N/A'}">Nom du dataset</span></h2>
+        </div>
+
+        <div class="card shadow mb-4 animate-fade-in animate-delay-1">
+            <div class="card-body">
+                <!-- Statistics Cards -->
+                <div class="statistics-card mb-5">
+                    <h5 class="text-primary mb-4">Métriques</h5>
+                    <div class="row g-4">
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="card h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="Pourcentage d'annotations cohérentes entre annotateurs">
+                                <div class="card-body">
+                                    <div class="stat-icon text-primary">
+                                        <i class="bi bi-hand-thumbs-up"></i>
+                                    </div>
+                                    <h5 class="card-title">Taux d'accord</h5>
+                                    <p class="card-text fs-4 fw-bold">
+                                        <span th:text="${metrics != null && metrics['agreementRate'] != null ? #numbers.formatDecimal(metrics['agreementRate'] * 100, 1, 1) + ' %' : 'Non calculé'}">-</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="card h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="Pourcentage des annotations complétées par rapport au total attendu">
+                                <div class="card-body">
+                                    <div class="stat-icon text-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </div>
+                                    <h5 class="card-title">Taux de complétion</h5>
+                                    <p class="card-text fs-4 fw-bold">
+                                        <span th:text="${metrics != null && metrics['completionRate'] != null ? #numbers.formatDecimal(metrics['completionRate'] * 100, 1, 1) + ' %' : 'Non calculé'}">-</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="card h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="Nombre total d'annotations effectuées">
+                                <div class="card-body">
+                                    <div class="stat-icon text-warning">
+                                        <i class="bi bi-tags"></i>
+                                    </div>
+                                    <h5 class="card-title">Total Annotations</h5>
+                                    <p class="card-text fs-4 fw-bold">
+                                        <span th:text="${metrics != null && metrics['totalAnnotations'] != null ? metrics['totalAnnotations'] : '0'}">0</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <div class="card h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="Temps moyen par annotation (en secondes)">
+                                <div class="card-body">
+                                    <div class="stat-icon text-info">
+                                        <i class="bi bi-clock"></i>
+                                    </div>
+                                    <h5 class="card-title">Temps Moyen</h5>
+                                    <p class="card-text fs-4 fw-bold">
+                                        <span th:text="${metrics != null && metrics['averageAnnotationTime'] != null ? #strings.concat(#numbers.formatDecimal(metrics['averageAnnotationTime'], 1, 1), ' s') : 'Non calculé'}">0</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Annotations by Category (Table) -->
+                <div class="mb-5 animate-fade-in animate-delay-2">
+                    <h5 class="text-primary mb-4">Annotations par catégorie</h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-tag-fill"></i> Catégorie</th>
+                                <th><i class="bi bi-list-check"></i> Nombre d'annotations</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="entry : ${metrics['annotationsByCategory']}">
+                                <td th:text="${entry.key != null ? entry.key : 'N/A'}">Catégorie</td>
+                                <td th:text="${entry.value != null ? entry.value : '0'}">0</td>
+                            </tr>
+                            <tr th:if="${metrics == null || metrics['annotationsByCategory'] == null || #maps.isEmpty(metrics['annotationsByCategory'])}">
+                                <td colspan="2" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bi bi-tags fs-1 d-block mb-2"></i>
+                                        <p>Aucune annotation enregistrée</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Annotations by Text Pair -->
+                <div class="animate-fade-in animate-delay-3">
+                    <h5 class="text-primary mb-4">Détail des annotations par couple de textes</h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-text-paragraph"></i> Couple de texte</th>
+                                <th><i class="bi bi-clipboard-check"></i> Annotations</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="textPair : ${textPairs}">
+                                <td th:text="${textPair != null && textPair.getText1() != null && textPair.getText2() != null ? textPair.getText1() + ' / ' + textPair.getText2() : 'N/A'}">Texte 1 / Texte 2</td>
+                                <td>
+                                    <div th:if="${textPair != null && textPair.getAnnotations() != null && !#lists.isEmpty(textPair.getAnnotations())}">
+                                        <span th:each="annotation : ${textPair.getAnnotations()}" class="badge bg-primary me-1 mb-1">
+                                            <span th:text="${annotation != null && annotation.getCategory() != null && annotation.getAnnotator() != null ? annotation.getCategory().getName() + ' par ' + annotation.getAnnotator().getUsername() : 'N/A'}">Catégorie par Annotateur</span>
+                                        </span>
+                                    </div>
+                                    <div th:unless="${textPair != null && textPair.getAnnotations() != null && !#lists.isEmpty(textPair.getAnnotations())}" class="text-muted">
+                                        Aucune annotation
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${textPairs == null || #lists.isEmpty(textPairs)}">
+                                <td colspan="2" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bi bi-file-text fs-1 d-block mb-2"></i>
+                                        <p>Aucun couple de texte disponible</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/alerts.js}"></script>
+<script th:src="@{/js/tooltips.js}"></script>
+</body>
+</html>

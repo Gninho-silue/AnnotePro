@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Utilisateur - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+<!-- Toggle menu button and overlay (visible on mobile) -->
+<button class="btn menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+    <i class="bi bi-list text-white"></i>
+</button>
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar (using fragment) -->
+<div th:replace="~{fragments/sidebar :: sidebar(currentUri=${currentUri})}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in"
+             style="border-radius: 10px; border-left: 4px solid #198754;" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in"
+             style="border-radius: 10px; border-left: 4px solid #dc3545;" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+       
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in">
+            <h2 class="text-primary">Créer un Utilisateur</h2>
+        </div>
+
+        <!-- Form -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-1">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Nouvel Utilisateur</h6>
+            </div>
+            <div class="card-body">
+                <form th:action="${isEdit ? '/admin/users/edit/' + userId : '/admin/users/create'}" th:object="${user}" method="post">
+                     <!-- Validation Errors -->
+                    <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger alert-dismissible fade show animate-fade-in"
+                            style="border-radius: 10px; border-left: 4px solid #dc3545;" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <ul class="mb-0">
+                            <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label"><i class="bi bi-person-fill"></i> Nom d'Utilisateur</label>
+                        <input type="text" class="form-control" id="username" th:field="*{username}" placeholder="Entrez le nom d'utilisateur" required />
+                        <div th:if="${#fields.hasErrors('username')}" class="text-danger small" th:errors="*{username}"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label"><i class="bi bi-person-fill"></i> Prénom</label>
+                        <input type="text" class="form-control" id="firstName" th:field="*{firstName}" placeholder="Entrez le prénom" required />
+                        <div th:if="${#fields.hasErrors('firstName')}" class="text-danger small" th:errors="*{firstName}"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label"><i class="bi bi-person-fill"></i> Nom</label>
+                        <input type="text" class="form-control" id="lastName" th:field="*{lastName}" placeholder="Entrez le nom" required />
+                        <div th:if="${#fields.hasErrors('lastName')}" class="text-danger small" th:errors="*{lastName}"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label"><i class="bi bi-envelope-fill"></i> Email</label>
+                        <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="Entrez l'email" required />
+                        <div th:if="${#fields.hasErrors('email')}" class="text-danger small" th:errors="*{email}"></div>
+                    </div>
+
+                    <div class="mb-3" th:if="${!isEdit}">
+                        <label for="role" class="form-label"><i class="bi bi-shield-fill"></i> Rôle</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="" disabled selected>Sélectionnez un rôle</option>
+                            <option value="ROLE_ADMIN">Administrateur</option>
+                            <option value="ROLE_ANNOTATOR">Annotateur</option>
+                        </select>
+                        <div class="form-text">Choisissez le rôle de l'utilisateur</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span th:text="${isEdit ? 'Mettre à jour' : 'Créer'}"></span>
+                        </button>
+                        <a th:href="@{/admin/users}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/alerts.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails du Dataset - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+<!-- Toggle menu button and overlay (visible on mobile) -->
+<button class="btn menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+    <i class="bi bi-list text-white"></i>
+</button>
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar (using fragment) -->
+<div th:replace="~{fragments/sidebar :: sidebar(currentUri=${currentUri})}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in"
+             style="border-radius: 10px; border-left: 4px solid #198754;" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in"
+             style="border-radius: 10px; border-left: 4px solid #dc3545;" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in">
+            <h2 class="text-primary">Détails du Dataset : <span th:text="${dataset.getName()}"></span></h2>
+        </div>
+
+        <!-- Informations du Dataset -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-1">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Informations du Dataset</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Nom :</strong> <span th:text="${dataset.getName()}"></span></p>
+                <p><strong>Description :</strong> <span th:text="${dataset.getDescription()} ?: 'Aucune'"></span></p>
+                <p><strong>Nombre de couples de texte :</strong> <span th:text="${dataset.getTextPairs().size()}"></span></p>
+                <p><strong>Nombre d'annotateurs par couple de texte :</strong> <span th:text="${dataset.getAnnotatorsPerTextPair()}"></span></p>
+                <p><strong>Date de création :</strong>
+                    <span th:text="${dataset.getCreatedAt() instanceof T(java.time.LocalDateTime) ? dataset.getCreatedAt().format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy')) : #dates.format(dataset.getCreatedAt(), 'dd MMM yyyy')}">10 Mai 2025</span>
+                </p>
+                <p><strong>Statut :</strong>
+                    <span th:switch="${dataset.getStatus()}" class="badge">
+                        <span th:case="'ACTIVE'" class="badge bg-success">Actif</span>
+                        <span th:case="'INACTIVE'" class="badge bg-danger">Inactif</span>
+                        <span th:case="'COMPLETED'" class="badge bg-primary">Complété</span>
+                        <span th:case="'CREATED'" class="badge bg-warning">Créé</span>
+                        <span th:case="*" class="badge bg-secondary">Inconnu</span>
+                    </span>
+                </p>
+                <p><strong>Progrès :</strong>
+                <div class="progress" style="height: 10px; border-radius: 5px;">
+                    <div th:class="'progress-bar ' + ${dataset.getStatus() == 'COMPLETED' ? 'bg-primary' : (dataset.getStatus() == 'ACTIVE' ? 'bg-success' : 'bg-warning')}"
+                         role="progressbar"
+                         th:style="'width: ' + ${#numbers.formatDecimal(dataset.getCompletionRate() * 100, 1, 1)} + '%'"
+                         th:aria-valuenow="${#numbers.formatDecimal(dataset.getCompletionRate() * 100, 1, 1)}"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                    </div>
+                </div>
+                <div class="small text-end mt-1" th:text="${#numbers.formatDecimal(dataset.getCompletionRate() * 100, 1, 1)} + '%'">0%</div>
+                <p><strong>Classes :</strong>
+                    <span th:if="${#lists.isEmpty(dataset.getCategories())}" class="badge bg-secondary">Aucune classe</span>
+                    <span th:each="category : ${dataset.getCategories()}" class="badge bg-info">
+                        <span th:text="${category.getName()}"></span>
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Actions Rapides -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-2">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Actions Rapides</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                   
+                    <a th:href="@{/admin/assign/{id}(id=${dataset.getId()})}" class="btn btn-outline-success action-btn" title="Assigner des annotateurs">
+                        <i class="bi bi-person-plus"></i>
+                    </a>
+                    <a th:href="@{/admin/metrics/{id}(id=${dataset.getId()})}" class="btn btn-outline-info action-btn" title="Voir les métriques">
+                        <i class="bi bi-graph-up"></i>
+                    </a>
+                    <a th:href="@{/admin/datasets/{datasetId}/agreement(datasetId=${dataset.getId()})}" class="btn btn-outline-warning action-btn" title="Voir l'accord inter-annotateurs">
+                        <i class="bi bi-people"></i>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Exporter">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/admin/datasets/export/{id}(id=${dataset.getId()}, type='dataset')}">Dataset (CSV)</a></li>
+                            <li><a class="dropdown-item" th:href="@{/admin/datasets/export/{id}(id=${dataset.getId()}, type='annotations', format='csv')}">Annotations (CSV)</a></li>
+                            <li><a class="dropdown-item" th:href="@{/admin/datasets/export/{id}(id=${dataset.getId()}, type='annotations', format='json')}">Annotations (JSON)</a></li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="block">
+                            <a th:href="@{/admin/datasets/{id}/annotations(id=${dataset.id})}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Gérer les annotations
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Couples de Texte -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-3" th:if="${!#lists.isEmpty(dataset.getTextPairs())}">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Couples de Texte</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle" id="textPairsTable">
+                        <thead>
+                        <tr>
+                            <th>Texte 1</th>
+                            <th>Texte 2</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="textPair : ${dataset.getTextPairs()}">
+                            <td th:text="${textPair.getText1()}"></td>
+                            <td th:text="${textPair.getText2()}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(dataset.getTextPairs())}">
+                            <td colspan="2" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-file-text fs-1 d-block mb-2"></i>
+                                    <p>Aucun couple de texte disponible</p>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Annotateurs Assignés -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-3">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Annotateurs Assignés</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle" id="annotatorsTable">
+                        <thead>
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="annotator : ${dataset.getAssignedAnnotators()}">
+                            <td th:text="${annotator.getUsername()}"></td>
+                            <td th:text="${annotator.getEmail()}"></td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal"
+                                            th:attr="data-bs-target='#unassignModal-' + ${annotator.getId()}" title="Désaffecter">
+                                        <i class="bi bi-person-dash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(dataset.getAssignedAnnotators())}">
+                            <td colspan="3" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-person-x fs-1 d-block mb-2"></i>
+                                    <p>Aucun annotateur assigné</p>
+                                    <a th:href="@{/admin/assign/{id}(id=${dataset.getId()})}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-person-plus me-2"></i>Assigner des annotateurs
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <a th:href="@{/admin/assign/{id}(id=${dataset.getId()})}" class="btn btn-primary">
+                        <i class="bi bi-person-plus me-2"></i>Assigner des annotateurs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Détails du dataset -->
+        <!-- <div class="card shadow mb-4 animate-fade-in animate-delay-4">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                Détails du dataset
+            </div>
+            
+        </div> -->
+    </div>
+</div>
+
+<!-- Modals de confirmation pour désaffectation -->
+<div th:each="annotator : ${dataset.getAssignedAnnotators()}" class="modal fade" th:id="'unassignModal-' + ${annotator.getId()}" tabindex="-1"
+     th:attr="aria-labelledby='unassignModalLabel-' + ${annotator.getId()}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" th:id="'unassignModalLabel-' + ${annotator.getId()}">Confirmer la désaffectation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Annuler"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir désaffecter l'annotateur
+                <strong th:text="${annotator.getUsername()}"></strong> ? Toutes ses annotations pour ce dataset seront supprimées.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form th:action="@{/admin/datasets/unassign/{datasetId}/{userId}(datasetId=${dataset.getId()}, userId=${annotator.getId()})}" method="post">
+                    <button type="submit" class="btn btn-danger">Désaffecter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/alerts.js}"></script>
+<script th:src="@{/js/modals.js}"></script>
+</body>
+</html>

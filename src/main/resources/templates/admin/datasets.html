@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Datasets - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<!-- Toggle menu button and overlay (visible on mobile) -->
+<button class="btn menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+    <i class="bi bi-list text-white"></i>
+</button>
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar (using fragment) -->
+<div th:replace="~{fragments/sidebar :: sidebar(currentUri=${currentUri})}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages de feedback -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in"
+             style="border-radius: 10px; border-left: 4px solid #198754;" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in"
+             style="border-radius: 10px; border-left: 4px solid #dc3545;" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+        <!-- Titre et bouton de création -->
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in">
+            <div>
+                <h2 class="text-primary">Gestion des Datasets</h2>
+                <p>Gérez vos datasets d'annotation et suivez leur progression</p>
+            </div>
+            <a th:href="@{/admin/datasets/create}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Créer un dataset
+            </a>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-1">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Filtres</h6>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/datasets}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Rechercher par nom" th:value="${param.search}">
+                    </div>
+                    <div class="col-md-4">
+                        <select name="status" class="form-select">
+                            <option value="">Tous les statuts</option>
+                            <option value="ACTIVE" th:selected="${param.status == 'ACTIVE'}">Actif</option>
+                            <option value="INACTIVE" th:selected="${param.status == 'INACTIVE'}">Inactif</option>
+                            <option value="CREATED" th:selected="${param.status == 'CREATED'}">Créé</option>
+                            <option value="COMPLETED" th:selected="${param.status == 'COMPLETED'}">Complété</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Liste des datasets -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-2">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Liste des Datasets</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Nom du Dataset</th>
+                            <th>Description</th>
+                            <th>Statut</th>
+                            <th>Progrès</th>
+                            <th>Annotateurs</th>
+                            <th width="20%">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="dataset : ${datasets}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bi bi-folder2-open text-primary fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0" th:text="${dataset.name}"></h6>
+                                        <small class="text-muted" th:text="${dataset.createdAt instanceof T(java.time.LocalDateTime) ? dataset.createdAt.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy')) : #dates.format(dataset.createdAt, 'dd MMM yyyy')}">10 Mai 2025</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td th:text="${dataset.description} ?: 'N/A'"></td>
+                            <td>
+                                <span th:switch="${dataset.status}" class="badge">
+                                    <span th:case="'ACTIVE'" class="badge bg-success">Actif</span>
+                                    <span th:case="'INACTIVE'" class="badge bg-danger">Inactif</span>
+                                    <span th:case="'COMPLETED'" class="badge bg-primary">Complété</span>
+                                    <span th:case="'CREATED'" class="badge bg-warning">Créé</span>
+                                    <span th:case="*" class="badge bg-secondary">Inconnu</span>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 10px; border-radius: 5px;">
+                                    <div th:class="'progress-bar ' + ${dataset.status == 'COMPLETED' ? 'bg-primary' : (dataset.status == 'ACTIVE' ? 'bg-success' : 'bg-warning')}"
+                                         role="progressbar"
+                                         th:style="'width: ' + ${#numbers.formatDecimal(dataset.getCompletionRate() * 100, 1, 1)} + '%'"
+                                         th:aria-valuenow="${#numbers.formatDecimal(dataset.getCompletionRate() * 100, 1, 1)}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <div class="small text-end mt-1" th:text="${#numbers.formatDecimal(dataset.getCompletionRate() * 100, 1, 1)} + '%'">0%</div>
+                            </td>
+                            <td th:text="${#lists.size(dataset.assignedAnnotators) ?: 0}"></td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a th:href="@{/admin/datasets/details/{id}(id=${dataset.id})}" class="btn btn-sm btn-outline-info action-btn" title="Voir les détails">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/admin/assign/{id}(id=${dataset.id})}" class="btn btn-sm btn-outline-primary action-btn" title="Assigner des annotateurs">
+                                        <i class="bi bi-person-plus"></i>
+                                    </a>
+                                    <a th:href="@{/admin/metrics/{id}(id=${dataset.id})}" class="btn btn-sm btn-outline-success action-btn" title="Voir les métriques">
+                                        <i class="bi bi-graph-up"></i>
+                                    </a>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-warning action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-label="Exporter">
+                                            <i class="bi bi-download"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" th:href="@{/admin/datasets/export/{id}(id=${dataset.id}, type='dataset')}">Exporter le dataset (CSV)</a></li>
+                                            <li><a class="dropdown-item" th:href="@{/admin/datasets/export/{id}(id=${dataset.id}, type='annotations', format='csv')}">Exporter les annotations (CSV)</a></li>
+                                            <li><a class="dropdown-item" th:href="@{/admin/datasets/export/{id}(id=${dataset.id}, type='annotations', format='json')}">Exporter les annotations (JSON)</a></li>
+                                        </ul>
+                                    </div>
+                                    <a th:href="@{/admin/datasets/edit/{id}(id=${dataset.getId()})}" class="btn btn-outline-primary action-btn" title="Modifier le dataset">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal" th:attr="data-bs-target='#deleteModal' + ${dataset.id}" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(datasets)}">
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
+                                    <p>Aucun dataset disponible</p>
+                                    <a th:href="@{/admin/datasets/create}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-plus-circle me-2"></i>Créer un dataset
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals de confirmation pour la suppression -->
+<div th:each="dataset : ${datasets}" class="modal fade" th:id="'deleteModal' + ${dataset.id}" tabindex="-1" th:attr="aria-labelledby='deleteModalLabel' + ${dataset.id}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" th:id="'deleteModalLabel' + ${dataset.id}">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Annuler"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer le dataset <strong th:text="${dataset.name}"></strong> ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form th:action="@{/admin/datasets/delete/{id}(id=${dataset.id})}" method="post">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/alerts.js}"></script>
+<script th:src="@{/js/modals.js}"></script>
+</body>
+</html>
+

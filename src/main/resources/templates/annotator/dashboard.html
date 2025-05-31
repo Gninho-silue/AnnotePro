@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord Annotateur - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <!-- <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --info-color: #4895ef;
+            --warning-color: #f72585;
+            --danger-color: #ff4d6d;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+
+        body {
+            overflow-x: hidden;
+            background-color: #f1f5f9;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(180deg, #3a0ca3 0%, #4361ee 100%);
+            color: white;
+            padding-top: 1rem;
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar .logo-container {
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .sidebar a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            border-radius: 8px;
+            margin: 5px 15px;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 3px solid #f72585;
+        }
+
+        .sidebar a i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s ease-in-out;
+            min-height: 100vh;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .overlay.active {
+                display: block;
+            }
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-success {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .btn-outline-success:hover {
+            background-color: var(--success-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-info {
+            border-color: var(--info-color);
+            color: var(--info-color);
+        }
+
+        .btn-outline-info:hover {
+            background-color: var(--info-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border-left: 4px solid;
+            padding: 0.75rem 1.25rem;
+        }
+
+        .alert-success {
+            border-left-color: var(--success-color);
+        }
+
+        .alert-danger {
+            border-left-color: var(--danger-color);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .animate-delay-1 { animation-delay: 0.1s; }
+        .animate-delay-2 { animation-delay: 0.2s; }
+    </style> -->
+</head>
+<body>
+<!-- Include Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar(currentUri=${currentUri})}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in" role="alert" aria-live="assertive">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert" aria-live="assertive">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+        <!-- Header -->
+        <div class="welcome-section animate-fade-in">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2>Tableau de bord - Annotateur</h2>
+                    <p>Bienvenue, <strong th:text="${userFirstName != null ? userFirstName : 'Annotateur'}"></strong>.
+                        Suivez l'état de vos annotations ici.
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                   <span class="badge bg-white text-primary mt-4">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span th:text="${#dates.format(#dates.createNow(), 'dd MMM yyyy')}">18 Mai 2025</span>
+                        <i class="bi bi-clock me-1"></i>
+                        <span th:text="${#dates.format(#dates.createNow(), 'HH:mm')}">18:00</span>
+                   </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 animate-fade-in animate-delay-1" aria-labelledby="tasksCardTitle">
+                    <div class="card-body">
+                        <div class="card-icon text-primary">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <h5 id="tasksCardTitle" class="card-title">Tâches d'annotation</h5>
+                        <p class="card-text">Vous avez <span th:text="${pendingTasksCount != null ? pendingTasksCount : 0}">0</span> tâche(s) en attente.</p>
+                        <a th:href="@{/annotator/tasks}" class="btn btn-outline-primary">Voir mes tâches</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 animate-fade-in animate-delay-2" aria-labelledby="statsCardTitle">
+                    <div class="card-body">
+                        <div class="card-icon text-success">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h5 id="statsCardTitle" class="card-title">Statistiques</h5>
+                        <p class="card-text">Vous avez complété <span th:text="${completedAnnotationsCount != null ? completedAnnotationsCount : 0}">0</span> annotation(s).</p>
+                        <a th:href="@{/annotator/stats}" class="btn btn-outline-success">Voir mes statistiques</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 animate-fade-in animate-delay-2" aria-labelledby="profileCardTitle">
+                    <div class="card-body">
+                        <div class="card-icon text-info">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <h5 id="profileCardTitle" class="card-title">Mon profil</h5>
+                        <p class="card-text">Modifiez vos informations personnelles.</p>
+                        <a th:href="@{/profile}" class="btn btn-outline-info">Modifier mon profil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tâches récentes par dataset -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card animate-fade-in animate-delay-3">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Tâches récentes par dataset</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${recentTasksByDataset != null and !recentTasksByDataset.isEmpty()}">
+                            <div th:each="datasetGroup : ${recentTasksByDataset.entrySet()}" class="mb-4">
+                                <h6 class="text-primary mb-3">
+                                    <i class="bi bi-folder me-2"></i>
+                                    <span th:text="${datasetGroup.key.name}">Dataset Name</span>
+                                    <span class="badge bg-primary ms-2" th:text="${datasetGroup.value.size()}">0</span>
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Texte source</th>
+                                            <th>Texte cible</th>
+                                            <th>Date limite</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="task : ${datasetGroup.value}"
+                                            th:classappend="${task.deadline != null and task.deadline.isBefore(T(java.time.LocalDateTime).now().plusHours(24)) and task.status != 'COMPLETED'} ? 'table-warning' : ''">
+                                            <td th:text="${task.id}">1</td>
+                                            <td th:text="${task.textPair.text1}">Texte source</td>
+                                            <td th:text="${task.textPair.text2}">Texte cible</td>
+                                            <td th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy HH:mm')}">N/A</td>
+                                            <td>
+                                                <span th:if="${task.status == 'PENDING'}" class="badge bg-secondary">En attente</span>
+                                                <span th:if="${task.status == 'IN_PROGRESS'}" class="badge bg-info text-dark">En cours</span>
+                                                <span th:if="${task.status == 'COMPLETED'}" class="badge bg-success">Terminé</span>
+                                                <span th:unless="${task.status == 'PENDING' or task.status == 'IN_PROGRESS' or task.status == 'COMPLETED'}" class="badge bg-warning">Inconnu</span>
+                                            </td>
+                                            <td>
+                                                <a th:if="${task.status != 'COMPLETED'}" th:href="@{/annotator/annotate/{id}(id=${task.id})}"
+                                                   class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-pen"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${recentTasksByDataset == null or recentTasksByDataset.isEmpty()}" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            <p>Aucune tâche récente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/alerts.js}"></script>
+</body>
+</html>

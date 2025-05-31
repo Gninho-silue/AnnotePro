@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métriques d'accord inter-annotateurs - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+<!-- Include Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar(currentUri=${currentUri})}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in" role="alert" aria-live="assertive">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert" aria-live="assertive">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in">
+            <h2 class="text-primary">Métriques d'accord inter-annotateurs</h2>
+            <a th:href="@{/admin/datasets/details/{id}(id=${dataset.id})}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Retour au dataset
+            </a>
+        </div>
+
+        <!-- Dataset Info -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-1">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-folder me-2"></i>Dataset: <span th:text="${dataset.name}">Dataset Name</span></h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted" th:text="${dataset.description}">Dataset description</p>
+            </div>
+        </div>
+
+        <!-- Overall Agreement -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-2">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Accord global (Fleiss' Kappa)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h3 class="mb-0" th:text="${#numbers.formatDecimal(agreementStats.fleissKappa, 1, 3)}">0.000</h3>
+                        <p class="text-muted mb-0" th:text="${agreementStats.fleissKappaInterpretation}">Interpretation</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 th:style="'width: ' + ${#numbers.formatDecimal(agreementStats.fleissKappa * 100, 1, 1)} + '%'"
+                                 th:text="${#numbers.formatDecimal(agreementStats.fleissKappa * 100, 1, 1)} + '%'">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pairwise Agreements -->
+        <div class="card shadow mb-4 animate-fade-in animate-delay-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Accords par paires (Cohen's Kappa)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Annotateur 1</th>
+                            <th>Annotateur 2</th>
+                            <th>Score Kappa</th>
+                            <th>Interprétation</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="pair : ${agreementStats.pairwiseAgreements}">
+                            <td th:text="${@userService.getUserById(pair.annotator1Id).username}">Annotator 1</td>
+                            <td th:text="${@userService.getUserById(pair.annotator2Id).username}">Annotator 2</td>
+                            <td th:text="${#numbers.formatDecimal(pair.cohensKappa, 1, 3)}">0.000</td>
+                            <td>
+                                <span class="badge" th:classappend="${pair.cohensKappa < 0.20 ? 'bg-danger' : 
+                                    (pair.cohensKappa < 0.40 ? 'bg-warning' : 
+                                    (pair.cohensKappa < 0.60 ? 'bg-info' : 
+                                    (pair.cohensKappa < 0.80 ? 'bg-primary' : 'bg-success')))}"
+                                      th:text="${pair.interpretation}">Interpretation</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(agreementStats.pairwiseAgreements)}">
+                            <td colspan="4" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-people fs-1 d-block mb-2"></i>
+                                    <p>Aucun accord par paires disponible</p>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="card shadow animate-fade-in animate-delay-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Légende des scores Kappa</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-danger me-2">&nbsp;</span>
+                            <span>Accord faible (< 0.20)</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-warning me-2">&nbsp;</span>
+                            <span>Accord léger (0.20 - 0.40)</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-info me-2">&nbsp;</span>
+                            <span>Accord modéré (0.40 - 0.60)</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">&nbsp;</span>
+                            <span>Accord substantiel (0.60 - 0.80)</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2">&nbsp;</span>
+                            <span>Accord presque parfait (> 0.80)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

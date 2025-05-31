@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes tâches d'annotation - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+<!-- Include Sidebar -->
+<div th:replace="~{fragments/sidebar :: body}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in" role="alert" aria-live="assertive">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert" aria-live="assertive">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in">
+            <h2 class="text-primary">Mes tâches d'annotation</h2>
+        </div>
+
+        <!-- Alerte si tâches proches de la deadline -->
+        <div th:if="${urgentTasks != null and !urgentTasks.isEmpty()}" class="alert alert-warning d-flex align-items-center animate-fade-in animate-delay-1" role="alert" aria-live="assertive">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Vous avez <strong th:text="${urgentTasks.size()}" class="m-1">0</strong> tâche(s) proche(s) de la date limite.
+            <a href="#tachesTable" class="btn btn-sm btn-outline-dark ms-3">Voir</a>
+        </div>
+
+        <!-- Message si aucune tâche -->
+        <div th:if="${tasks == null or tasks.isEmpty()}" class="alert alert-info animate-fade-in animate-delay-1" role="alert" aria-live="assertive">
+            <i class="bi bi-info-circle me-2"></i>
+            Vous n'avez aucune tâche d'annotation pour le moment.
+        </div>
+
+        <!-- Tâches groupées par dataset -->
+        <div th:if="${tasks != null and !tasks.isEmpty()}" class="mt-3 animate-fade-in animate-delay-1" id="tachesTable">
+            <!-- Group tasks by dataset -->
+            <div th:each="datasetGroup : ${tasks.entrySet()}" class="card mb-3">
+                <div class="card-header bg-light" role="button" 
+                     th:attr="data-bs-toggle='collapse', data-bs-target='#dataset-' + ${datasetGroup.key.id}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-folder me-2"></i>
+                            <span th:text="${datasetGroup.key.name}">Dataset Name</span>
+                            <span class="badge bg-primary ms-2" th:text="${datasetGroup.value.size()}">0</span>
+                        </h5>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                </div>
+                <div th:id="'dataset-' + ${datasetGroup.key.id}" class="collapse show">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th scope="col"><i class="bi bi-hash"></i> ID</th>
+                                    <th scope="col"><i class="bi bi-text-left"></i> Texte source</th>
+                                    <th scope="col"><i class="bi bi-text-right"></i> Texte cible</th>
+                                    <th scope="col"><i class="bi bi-clock"></i> Date limite</th>
+                                    <th scope="col"><i class="bi bi-info-circle"></i> Statut</th>
+                                    <th scope="col"><i class="bi bi-gear"></i> Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="task : ${datasetGroup.value}"
+                                    th:classappend="${task.deadline != null and task.deadline.isBefore(T(java.time.LocalDateTime).now().plusHours(24)) and task.status != 'COMPLETED'} ? 'table-warning' : ''">
+                                    <td th:text="${task.id != null ? task.id : 'N/A'}">1</td>
+                                    <td th:text="${task.textPair != null and task.textPair.text1 != null ? task.textPair.text1 : 'N/A'}">Texte source</td>
+                                    <td th:text="${task.textPair != null and task.textPair.text2 != null ? task.textPair.text2 : 'N/A'}">Texte cible</td>
+                                    <td th:text="${task.deadline != null ? #temporals.format(task.deadline, 'dd/MM/yyyy HH:mm') : 'N/A'}">N/A</td>
+                                    <td>
+                                        <span th:if="${task.status == 'PENDING'}" class="badge bg-secondary">En attente</span>
+                                        <span th:if="${task.status == 'IN_PROGRESS'}" class="badge bg-info text-dark">En cours</span>
+                                        <span th:if="${task.status == 'COMPLETED'}" class="badge bg-success">Terminé</span>
+                                        <span th:unless="${task.status == 'PENDING' or task.status == 'IN_PROGRESS' or task.status == 'COMPLETED'}" class="badge bg-warning">Inconnu</span>
+                                    </td>
+                                    <td>
+                                        <a th:if="${task.status != 'COMPLETED'}" th:href="@{/annotator/annotate/{id}(id=${task.id})}"
+                                           class="btn btn-primary btn-sm" aria-label="Annoter la tâche">
+                                            <i class="bi bi-pen me-1"></i>Annoter
+                                        </a>
+                                        <span th:if="${task.status == 'COMPLETED'}" class="text-success">
+                                            <i class="bi bi-check-circle"></i> Terminé
+                                        </span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="deadlineToast" class="toast text-bg-warning" role="alert" aria-live="assertive" aria-atomic="true"
+         th:attr="data-urgent-count=${urgentTasks != null ? urgentTasks.size() : 0}">
+        <div class="toast-header">
+            <i class="bi bi-clock-history me-2"></i>
+            <strong class="me-auto">Rappel</strong>
+            <small>Maintenant</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+        <div class="toast-body">
+            Vous avez des tâches proches de la date limite ! N'oubliez pas de les compléter.
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/alerts.js}"></script>
+<script th:src="@{/js/tasks.js}"></script>
+</body>
+</html>

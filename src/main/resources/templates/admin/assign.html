@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assigner des Annotateurs - Plateforme d'Annotation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+<!-- Toggle menu button and overlay (visible on mobile) -->
+<button class="btn menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+    <i class="bi bi-list text-white"></i>
+</button>
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar (using fragment) -->
+<div th:replace="~{fragments/sidebar :: sidebar(currentUri=${currentUri})}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show animate-fade-in" style="border-radius: 10px; border-left: 4px solid #198754;" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in" style="border-radius: 10px; border-left: 4px solid #dc3545;" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in">
+            <h2 class="text-primary">Assigner des Annotateurs</h2>
+        </div>
+
+        <div class="card shadow mb-4 animate-fade-in animate-delay-1">
+            <div class="card-body">
+                <p>Dataset: <strong th:text="${dataset != null ? dataset.getName() : 'N/A'}">Nom du dataset</strong></p>
+
+                <form th:action="@{/admin/assign}" method="post" id="assignForm">
+                    <input type="hidden" name="datasetId" th:value="${datasetId != null ? datasetId : ''}"/>
+
+                    <!-- Barre de recherche -->
+                    <div class="search-box mb-3">
+                        <input type="text" id="userSearch" class="form-control" placeholder="Rechercher par nom ou email..." style="border-radius: 8px;">
+                    </div>
+
+                    <!-- Compteur de sélection -->
+                    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap animate-fade-in animate-delay-2">
+                        <div><span id="selectedCount">0</span> annotateur(s) sélectionné(s)</div>
+                        <div class="mt-2 mt-md-0">
+                            <button type="button" class="btn btn-sm rounded-pill btn-outline-secondary me-2" id="selectAll">
+                                <i class="bi bi-check-square me-1"></i>Tout sélectionner
+                            </button>
+                            <button type="button" class="btn btn-sm rounded-pill btn-outline-secondary" id="deselectAll">
+                                <i class="bi bi-square me-1"></i>Tout désélectionner
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tableau des utilisateurs -->
+                    <div class="table-responsive">
+                        <div class="user-table border-0 mb-4">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th><i class="bi bi-person-fill"></i> Nom d'utilisateur</th>
+                                    <th><i class="bi bi-envelope-fill"></i> Email</th>
+                                    <th><i class="bi bi-shield-fill"></i> Rôle</th>
+                                    <th class="text-end"><i class="bi bi-check-square-fill"></i> Sélection</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="user : ${users}" class="user-row">
+                                    <td th:text="${user.getUsername()}">username</td>
+                                    <td th:text="${user.getEmail() != null ? user.getEmail() : 'N/A'}">email</td>
+                                    <td th:text="${user.getRoles() != null && !user.getRoles().isEmpty() ? user.getRoles()[0].getName() : 'Aucun rôle'}">role</td>
+                                    <td class="checkbox-cell text-end align-middle">
+                                        <input type="checkbox" name="annotatorIds" th:value="${user.getId()}"
+                                               class="user-checkbox form-check-input ms-2"
+                                               th:checked="${currentAnnotatorIds != null && #lists.contains(currentAnnotatorIds, user.getId())}">
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(users)}">
+                                    <td colspan="4" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="bi bi-people fs-1 d-block mb-2"></i>
+                                            <p>Aucun utilisateur disponible</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between animate-fade-in animate-delay-2">
+                        <a th:href="@{/admin/datasets/details/{id}(id=${datasetId})}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Assigner les annotateurs
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/alerts.js}"></script>
+<script th:src="@{/js/user-selection.js}"></script>
+</body>
+</html>

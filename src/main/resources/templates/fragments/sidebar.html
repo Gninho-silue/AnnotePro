@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnnotPro - Sidebar</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+</head>
+<body>
+<!-- Toggle menu button and overlay -->
+<button class="btn menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+    <i class="bi bi-list text-white"></i>
+</button>
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar Fragment -->
+<div th:fragment="sidebar(currentUri)" class="sidebar" id="sidebar">
+    <!-- Logo -->
+    <div class="logo-container">
+        <div class="logo-text">
+            <i class="bi bi-tags me-2"></i>
+            AnnotPro
+        </div>
+        <div class="text-light opacity-75 small">Plateforme d'Annotation</div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div sec:authorize="hasRole('ROLE_ADMIN')">
+        <a th:href="@{/admin/dashboard}" th:class="${currentUri == '/admin/dashboard' ? 'active' : ''}">
+            <i class="bi bi-house-door-fill"></i>Dashboard
+        </a>
+        <a th:href="@{/admin/datasets}" th:class="${currentUri == '/admin/datasets' ? 'active' : ''}">
+            <i class="bi bi-folder-fill"></i>Datasets
+        </a>
+        <a th:href="@{/admin/users}" th:class="${currentUri == '/admin/users' ? 'active' : ''}">
+            <i class="bi bi-people-fill"></i>Annotateurs
+        </a>
+        <a th:href="@{/admin/stats/annotators}" th:class="${currentUri == '/admin/stats/annotators' ? 'active' : ''}">
+            <i class="bi bi-bar-chart-fill"></i>Statistiques
+        </a>
+    </div>
+
+    <!-- Annotator Navigation -->
+    <div sec:authorize="hasRole('ROLE_ANNOTATOR')">
+        <a th:href="@{/annotator/dashboard}" th:class="${currentUri == '/annotator/dashboard' ? 'active' : ''}">
+            <i class="bi bi-speedometer2"></i>Tableau de bord
+        </a>
+        <a th:href="@{/annotator/tasks}" th:class="${currentUri == '/annotator/tasks' ? 'active' : ''}">
+            <i class="bi bi-list-check"></i>Mes tâches
+        </a>
+        <a th:href="@{/annotator/stats}" th:class="${currentUri == '/annotator/stats' ? 'active' : ''}">
+            <i class="bi bi-graph-up"></i>Mes statistiques
+        </a>
+    </div>
+
+    <!-- Common Navigation -->
+    <div class="mt-4">
+        <a th:href="@{/profile}" th:class="${currentUri == '/profile' ? 'active' : ''}">
+            <i class="bi bi-person-circle"></i>
+            <div class="d-flex flex-column">
+                <span sec:authentication="name">Mon profil</span>
+            </div>
+        </a>
+        <a th:href="@{/logout}">
+            <i class="bi bi-box-arrow-right"></i>Déconnexion
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer mt-auto text-center text-light opacity-50 small py-3">
+        © <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> AnnotPro | Version <span th:text="${appVersion ?: '1.0'}"></span>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/sidebar.js}"></script>
+</body>
+</html>
